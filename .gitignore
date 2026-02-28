@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Playwright and Browser Profiles
+X_Profile/
+IG_Profile/
+
+# Logs and debugging
+logs/
+*.log
+
+# Caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+env/
+.env
+.venv
+
+# IDE and OS specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
