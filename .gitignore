@@ -6,6 +6,7 @@ __pycache__/
 # Playwright and Browser Profiles
 X_Profile/
 IG_Profile/
+TikTok_Profile/
 
 # Logs and debugging
 logs/
