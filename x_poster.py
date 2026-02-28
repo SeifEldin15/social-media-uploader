@@ -12,7 +12,7 @@ class XPoster:
         self.page = page
         self.human = human
 
-    def create_post(self, text: str, image_path: str = None) -> bool:
+    def create_post(self, text: str, media_path: str = None) -> bool:
         try:
             # ==========================================
             # 🏃‍♂️ PHASE 1: THE WARM UP
@@ -36,13 +36,14 @@ class XPoster:
             # ==========================================
             # 📎 PHASE 3: HANDLING MEDIA
             # ==========================================
-            if image_path:
-                print(f"📎 Attaching media...")
+            if media_path:
+                print(f"📎 Attaching media: {media_path}")
                 self.page.wait_for_selector('input[data-testid="fileInput"]', state="attached")
-                self.page.set_input_files('input[data-testid="fileInput"]', image_path)
+                self.page.set_input_files('input[data-testid="fileInput"]', media_path)
                 
-                # Wait for the image to visually render in the composer box
-                self.page.wait_for_selector('button[aria-label="Remove"]', timeout=15000)
+                # Wait for the media (photo or video) to visually render in the composer box
+                # Increased timeout to 120s to allow for video processing
+                self.page.wait_for_selector('button[aria-label="Remove"]', timeout=120000)
                 self.human.sleep(3, 5) 
 
             # ==========================================
@@ -85,5 +86,8 @@ class XPoster:
 
         except Exception as e:
             print(f"❌ Failed to post: {e}")
-            self.page.screenshot(path="logs/failed_x_post.png")
+            try:
+                self.page.screenshot(path="logs/failed_x_post.png")
+            except:
+                pass
             return False

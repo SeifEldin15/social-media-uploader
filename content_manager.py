@@ -17,10 +17,10 @@ class ContentManager:
         # Using os.getcwd() ensures it always finds it no matter where you launch the terminal from.
         self.csv_path = os.path.join(os.getcwd(), "content.csv")
 
-    def get_next_post(self, platform_name: str):
+    def get_next_post(self, platform_name: str = None):
         """
         Scans the CSV top-to-bottom for the first row that matches our platform 
-        AND has a status of 'pending'.
+        (or any platform if None) AND has a status of 'pending'.
         """
         # Pre-flight check: Did we accidentally delete or rename the CSV?
         if not os.path.exists(self.csv_path):
@@ -42,7 +42,7 @@ class ContentManager:
                 status = row.get('status', '').strip().lower()
                 platform = row.get('platform', '').strip().lower()
                 
-                if status == 'pending' and platform == platform_name:
+                if status == 'pending' and (platform_name is None or platform == platform_name):
                     # Boom. We found our target. Return this exact row as a dictionary.
                     return row 
                     

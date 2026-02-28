@@ -1,2 +1,5 @@
 id,platform,caption,image_path,status
-1,x,"Hi there, this is my first time posting on this account since 2023 #followme",,completed
+1,x,"Testing automated video uploads to X! 🎥🤖 Looks like it works perfectly. #automation",media/sample.mp4,pending
+2,ig,"First automated video test on Instagram! 🎬 If you're seeing this, my bot works. #automation #video",media/sample.mp4,pending
+3,x,"Let's make sure regular text posts still work too. Automation rules.",,pending
+4,ig,"Follow-up image post for testing batch processing. � #testing123",media/placeholder.jpg,pending

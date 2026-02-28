@@ -41,12 +41,34 @@ def get_stealth_args():
         "--disable-features=IsolateOrigins,site-per-process"
     ]
 
-def save_x_session():
+def save_session(choice=None, is_ui=False):
+    # ==========================================
+    # PLATFORM SELECTION
+    # ==========================================
+    if choice is None:
+        print("Which platform do you want to log into?")
+        print("1: X (Twitter)")
+        print("2: Instagram")
+        choice = input("Enter 1 or 2: ").strip()
+
+    if choice == '1':
+        platform_name = "X"
+        profile_folder = "X_Profile"
+        login_url = "https://x.com/login"
+    elif choice == '2':
+        platform_name = "Instagram"
+        profile_folder = "IG_Profile"
+        login_url = "https://www.instagram.com/accounts/login/"
+    else:
+        print("Invalid choice. Exiting.")
+        return
+
     # ==========================================
     # DIRECTORY SETUP
     # ==========================================
-    # We dynamically grab the folder where this script lives and append our new session folder.
-    session_dir = os.path.join(os.getcwd(), "X_Profile")
+    # Build the profile folder right where this script is executed from
+    # (assuming it's run from the root directory)
+    session_dir = os.path.join(os.getcwd(), profile_folder)
 
     # If the folder doesn't exist yet, build it. This is where the SQLite databases, 
     # cookies, and local storage will be permanently saved.
@@ -88,24 +110,36 @@ def save_x_session():
         # ==========================================
         # NAVIGATION & MANUAL OVERRIDE
         # ==========================================
-        # Go directly to the X login page. We set a long timeout (60s) just in case your internet lags.
+        # Go directly to the platform login page. We set a long timeout (60s) just in case your internet lags.
         try:
-            page.goto("https://x.com/login", timeout=60000)
+            page.goto(login_url, timeout=60000)
         except Exception as e:
             print(f"[!] Network timeout: {e}. Browser is still open though.")
 
         print("\n" + "="*50)
-        print(" ACTION REQUIRED ")
+        print(f" ACTION REQUIRED FOR {platform_name.upper()} ")
         print("1. Enter your Username & Password.")
         print("2. Solve any Captchas/2FA.")
         print("3. Check 'Remember Me'.")
-        print("4. Wait until you see your X Home Feed.")
+        print(f"4. Wait until you see your {platform_name} Home Feed.")
         print("="*50 + "\n")
 
-        # This halts the Python script dead in its tracks. It will just sit here and wait infinitely 
-        # until you physically click into the terminal and press the Enter key.
-        # This gives you all the time in the world to do the manual login.
-        input("PRESS ENTER HERE ONCE YOU ARE FULLY LOGGED IN >> ")
+        # This halts the Python script dead in its tracks.
+        if is_ui:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)
+            messagebox.showinfo(
+                "Action Required",
+                f"Please log into {platform_name} in the newly opened browser.\n\n"
+                f"Press OK *AFTER* you see your home feed.",
+                parent=root
+            )
+            root.destroy()
+        else:
+            input("PRESS ENTER HERE ONCE YOU ARE FULLY LOGGED IN >> ")
 
         # ==========================================
         # 💾 TEARDOWN & SAVE
@@ -117,4 +151,4 @@ def save_x_session():
         print(f"Session saved! You can now run your main bots using the '{session_dir}' folder.")
 
 if __name__ == "__main__":
-    save_x_session()
+    save_session()

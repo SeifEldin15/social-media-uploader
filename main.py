@@ -4,21 +4,22 @@ stealth browser profile, and executes the posting sequence.
 """
 
 import os
+import sys
 import time
 
-from playwright.sync_api import sync_playwright # imports modules from playwright modules
-from playwright_stealth import stealth_sync
-from core.x_poster import XPoster               # imports the XPoster function from the x_poster.py script
-from core.human import Human                    # imports the Human function from the human.py script
-from core.content_manager import ContentManager # imports the content manager from content_manager.py
+# Ensure Windows terminal doesn't crash on emojis
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
+
+from playwright.sync_api import sync_playwright
+from playwright_stealth import Stealth
+from human import Human                    # imports the Human function from the human.py script
+from content_manager import ContentManager # imports the content manager from content_manager.py
 
 # ==========================================
 # GLOBAL CONFIGURATION
 # ==========================================
-# Point exactly to where our cookies are stored
-PROFILE_PATH = os.path.join(os.getcwd(), "X_Profile")
-
-# Tells X.com "I am a standard Windows PC running regular Chrome"
+# Tells X.com and IG "I am a standard Windows PC running regular Chrome"
 REAL_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
 
 def get_stealth_args():
@@ -38,8 +39,8 @@ def get_stealth_args():
         "--disable-features=IsolateOrigins,site-per-process" # Saves RAM by disabling site isolation
     ]
 
-def main():
-    print("🚀 Firing up the X engine (Stealth Mode)...")
+def main(target_platform=None):
+    print(f"🚀 Firing up the posting engine (Stealth Mode) for {'ALL' if not target_platform else target_platform.upper()}...")
     
     # ==========================================
     # PHASE 1: THE DATA FETCH
@@ -47,34 +48,45 @@ def main():
     # We do this FIRST. There is no reason to launch a heavy, RAM-hungry 
     # browser if we don't even have a post scheduled. 
     cm = ContentManager()
-    job = cm.get_next_post("x")
+    
+    # Get the next post for the target platform (or any platform if None)
+    job = cm.get_next_post(target_platform)
     
     # The kill switch: If content.csv is empty or has no 'pending' rows, we exit instantly.
-    if not job:
-        print("🛑 Nothing to do because content.csv is empty or has no pending posts. Shutting down gracefully.")
+    platform = job.get('platform', '').strip().lower()
+    
+    if platform == 'ig':
+        from ig_poster import IGPoster
+        PROFILE_PATH = os.path.join(os.getcwd(), "IG_Profile")
+        PosterClass = IGPoster
+        print(f"📋 Found IG Job #{job['id']}: '{job['caption'][:20]}...'")
+    elif platform == 'x':
+        from x_poster import XPoster
+        PROFILE_PATH = os.path.join(os.getcwd(), "X_Profile")
+        PosterClass = XPoster
+        print(f"📋 Found X Job #{job['id']}: '{job['caption'][:20]}...'")
+    else:
+        print(f"❌ Unknown platform '{platform}' for job #{job['id']}. Aborting.")
         return
-
-    # Just a nice UI touch to show what we're working on
-    print(f"📋 Found Job #{job['id']}: '{job['caption'][:20]}...'")
     
     # ==========================================
     # PHASE 1.5: BULLETPROOF FILE PATHING
     # ==========================================
-    # 1. Grab the raw string from the CSV (e.g., 'media/campaign_1.jpg')
-    raw_image_string = job['image_path'].strip() if job.get('image_path') else None
+    # 1. Grab the raw string from the CSV (e.g., 'media/campaign_1.mp4')
+    raw_media_string = job['image_path'].strip() if job.get('image_path') else None
     
     # We define a placeholder for the final, absolute path.
-    absolute_image_path = None
+    absolute_media_path = None
 
-    if raw_image_string:
+    if raw_media_string:
         # 2. Convert to Absolute Path
-        absolute_image_path = os.path.join(os.getcwd(), raw_image_string)
+        absolute_media_path = os.path.join(os.getcwd(), raw_media_string)
         
         # 3. The Pre-Flight Check
-        # If the marketing image was accidentally deleted or misspelled in the CSV, abort.
-        if not os.path.exists(absolute_image_path):
-            print(f"❌ CRITICAL ERROR: Could not find the image file!")
-            print(f"   I looked exactly here: {absolute_image_path}")
+        # If the marketing media was accidentally deleted or misspelled in the CSV, abort.
+        if not os.path.exists(absolute_media_path):
+            print(f"❌ CRITICAL ERROR: Could not find the media file!")
+            print(f"   I looked exactly here: {absolute_media_path}")
             print(f"   Check your media/ folder and content.csv spelling. Aborting.")
             return # Kills the script safely
 
@@ -97,7 +109,7 @@ def main():
         page = context.pages[0]
         
         # STEALTH 4: Apply Javascript Stealth Patches
-        stealth_sync(page)
+        Stealth().use_sync(page)
         
         # ==========================================
         # PHASE 3: EXECUTION
@@ -105,13 +117,13 @@ def main():
         # Instantiate our random-behavior engine to make the mouse/keyboard look human
         brian_bot = Human(page)
         
-        # Load up the X-specific logic and pass our human behavior engine into it
-        poster = XPoster(page, brian_bot)
+        # Load up the correct platform logic and pass our human behavior engine into it
+        poster = PosterClass(page, brian_bot)
         
-        # Fire the actual sequence! Note we are passing absolute_image_path here.
+        # Fire the actual sequence! Note we are passing absolute_media_path here.
         success = poster.create_post(
             text=job['caption'], 
-            image_path=absolute_image_path 
+            media_path=absolute_media_path 
         )
         
         # ==========================================
