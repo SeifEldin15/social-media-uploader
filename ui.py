@@ -65,6 +65,7 @@ class ShadowPosterUI:
         ttk.Button(btn_frame, text="🚀 Next in Queue", command=lambda: self.run_poster(None)).grid(row=1, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="📸 Next IG Post", command=lambda: self.run_poster('ig')).grid(row=2, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="🐦 Next X Post", command=lambda: self.run_poster('x')).grid(row=3, column=0, padx=10, pady=5)
+        ttk.Button(btn_frame, text="🎵 Next TikTok Post", command=lambda: self.run_poster('tiktok')).grid(row=4, column=0, padx=10, pady=5)
         
         # Spacer
         ttk.Frame(btn_frame, width=30).grid(row=0, column=1)
@@ -73,6 +74,7 @@ class ShadowPosterUI:
         ttk.Label(btn_frame, text="Configure Accounts:", font=("Helvetica", 10, "bold")).grid(row=0, column=2, sticky="w", padx=10)
         ttk.Button(btn_frame, text="Log into X (Twitter)", command=lambda: self.run_login('1')).grid(row=1, column=2, padx=10, pady=5)
         ttk.Button(btn_frame, text="Log into Instagram", command=lambda: self.run_login('2')).grid(row=2, column=2, padx=10, pady=5)
+        ttk.Button(btn_frame, text="Log into TikTok", command=lambda: self.run_login('3')).grid(row=3, column=2, padx=10, pady=5)
 
         # ---------------------
         # CONSOLE OUTPUT
@@ -101,7 +103,11 @@ class ShadowPosterUI:
             print(f"❌ Critical Error: {e}")
 
     def run_login(self, choice):
-        platform = "X (Twitter)" if choice == '1' else "Instagram"
+        if choice == '1': platform = "X (Twitter)"
+        elif choice == '2': platform = "Instagram"
+        elif choice == '3': platform = "TikTok"
+        else: platform = "Unknown"
+        
         print(f"\n--- Initiating Configuration for {platform} ---")
         threading.Thread(target=self._run_login_thread, args=(choice,), daemon=True).start()
 
