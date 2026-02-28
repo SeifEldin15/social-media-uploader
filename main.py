@@ -53,6 +53,10 @@ def main(target_platform=None):
     job = cm.get_next_post(target_platform)
     
     # The kill switch: If content.csv is empty or has no 'pending' rows, we exit instantly.
+    if not job:
+        print(f"🛑 Nothing to do because content.csv is empty or has no pending posts for '{target_platform}'. Shutting down gracefully.")
+        return
+
     platform = job.get('platform', '').strip().lower()
     
     if platform == 'ig':
@@ -60,6 +64,11 @@ def main(target_platform=None):
         PROFILE_PATH = os.path.join(os.getcwd(), "IG_Profile")
         PosterClass = IGPoster
         print(f"📋 Found IG Job #{job['id']}: '{job['caption'][:20]}...'")
+    elif platform == 'tiktok':
+        from tiktok_poster import TikTokPoster
+        PROFILE_PATH = os.path.join(os.getcwd(), "TikTok_Profile")
+        PosterClass = TikTokPoster
+        print(f"📋 Found TikTok Job #{job['id']}: '{job['caption'][:20]}...'")
     elif platform == 'x':
         from x_poster import XPoster
         PROFILE_PATH = os.path.join(os.getcwd(), "X_Profile")
