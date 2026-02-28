@@ -49,7 +49,8 @@ def save_session(choice=None, is_ui=False):
         print("Which platform do you want to log into?")
         print("1: X (Twitter)")
         print("2: Instagram")
-        choice = input("Enter 1 or 2: ").strip()
+        print("3: TikTok")
+        choice = input("Enter 1, 2, or 3: ").strip()
 
     if choice == '1':
         platform_name = "X"
@@ -59,6 +60,10 @@ def save_session(choice=None, is_ui=False):
         platform_name = "Instagram"
         profile_folder = "IG_Profile"
         login_url = "https://www.instagram.com/accounts/login/"
+    elif choice == '3':
+        platform_name = "TikTok"
+        profile_folder = "TikTok_Profile"
+        login_url = "https://www.tiktok.com/login"
     else:
         print("Invalid choice. Exiting.")
         return
