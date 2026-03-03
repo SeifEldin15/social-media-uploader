@@ -4,3 +4,7 @@ id,platform,caption,image_path,status
 3,x,Let's make sure regular text posts still work too. Automation rules.,,pending
 4,ig,Follow-up image post for testing batch processing. 🔥 #testing123,media/placeholder.jpg,pending
 5,tiktok,Here is a funny video I made! First automated TikTok post. #fyp #tiktok,media/sample.mp4,completed
+6,tiktok,Testing the video upload flow for TikTok again! 🎵🚀 #automation #test,media/sample.mp4,completed
+7,tiktok,Testing the video upload flow for TikTok again! 🎵🚀 #automation #test,media/sample.mp4,completed
+8,tiktok,Final TikTok posting test with data-e2e selector! 🚀🎵,media/sample.mp4,completed
+9,tiktok,Final TikTok posting test with data-e2e selector! 🚀🎵,media/sample.mp4,completed

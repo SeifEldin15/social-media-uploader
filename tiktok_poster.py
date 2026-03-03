@@ -82,6 +82,29 @@ class TikTokPoster:
             print("⏳ Uploading video to TikTok's servers... this takes a while.")
             # Videos take time to process on their end.
             self.human.sleep(15, 25) 
+
+            # ==========================================
+            # 🛡️ NEW PHASE: CLEARING BLOCKING MODALS
+            # ==========================================
+            # TikTok sometimes shows a "Discard video?" or "Are you sure you want to exit?" 
+            # modal if it thinks we are trying to navigate away.
+            try:
+                modal_visible = False
+                if self.page.locator("text=Discard this video?").is_visible(timeout=1000):
+                    modal_visible = True
+                elif self.page.locator("text=Are you sure you want to exit?").is_visible(timeout=1000):
+                    modal_visible = True
+
+                if modal_visible:
+                    print("⚠️ Exit/Discard modal detected! Clicking Cancel to stay on upload page.")
+                    # We look for 'Cancel' or 'Stay' to keep the video
+                    try:
+                        self.page.locator('button:has-text("Cancel")').first.click(timeout=2000)
+                    except:
+                        self.page.locator('button:has-text("Stay")').first.click(timeout=2000)
+                    self.human.sleep(1, 2)
+            except:
+                pass # Modal didn't appear, proceeding as normal
             
             # ==========================================
             # 🗣️ PHASE 4: TYPING THE CAPTION
@@ -139,18 +162,24 @@ class TikTokPoster:
             # ==========================================
             print("🚀 Clicking Post...")
             
+            # Scroll down to the bottom of the page to reveal the Post button
+            self.page.mouse.wheel(0, 2000)
+            self.human.sleep(1, 2)
+            
             post_clicked = False
-            post_selector = 'button:has-text("Post"):not([disabled])'
+            # We use the specific data-e2e attribute provided by TikTok for the post button.
+            # This is much more reliable than searching for the text "Post" which can match other elements.
+            post_selector = '[data-e2e="post_video_button"]'
             
             try:
                  # Direct DOM posting
-                 self.page.locator(post_selector).first.click(timeout=5000)
+                 self.page.locator(post_selector).first.click(timeout=60000)
                  post_clicked = True
             except:
                 try:
                     # iFrame posting
                     frame_locator = self.page.frame_locator('iframe[data-tt="Upload_index_iframe"]')
-                    frame_locator.locator(post_selector).first.click(timeout=5000)
+                    frame_locator.locator(post_selector).first.click(timeout=60000)
                     post_clicked = True
                 except:
                     pass
@@ -159,7 +188,7 @@ class TikTokPoster:
                     for f in self.page.frames:
                         try:
                             if f.locator(post_selector).count() > 0:
-                                f.locator(post_selector).first.click(timeout=5000)
+                                f.locator(post_selector).first.click(timeout=10000)
                                 post_clicked = True
                                 break
                         except:
@@ -170,14 +199,26 @@ class TikTokPoster:
             # ==========================================
             print("⏳ Waiting for success confirmation...")
             try:
-                # TikTok usually shows a toast notification or redirects to a success screen
+                # TikTok usually redirects to a manage screen or shows a confirmation. 
+                # We wait specifically for the 'Manage your posts' text or a redirection.
                 self.page.wait_for_selector("text=Manage your posts", timeout=60000)
                 print("✅ Success confirmation detected!")
             except:
-                print("⚠️ Could not detect explicit success text. Taking screenshot.")
-                if not os.path.exists("logs"):
-                     os.makedirs("logs")
-                self.page.screenshot(path="logs/possible_tiktok_post_issue.png")
+                print("⚠️ Success text not found. Verifying if Post button is still present...")
+                # We check if the Post button is still visible. If it IS, that means the click failed.
+                # If it is GONE, we assume the redirection happened but Playwright missed the text.
+                button_still_there = False
+                try:
+                    if self.page.locator(post_selector).is_visible(timeout=5000):
+                        button_still_there = True
+                except:
+                    pass
+                
+                if button_still_there:
+                    self.page.screenshot(path="logs/tiktok_stuck_on_post.png")
+                    raise Exception("Failing: The 'Post' button is still visible after clicking. The post likely failed or was blocked by a popup.")
+                else:
+                    print("✅ Post button is gone. Assuming success.")
 
             # ==========================================
             # 🧊 PHASE 7: THE COOL DOWN

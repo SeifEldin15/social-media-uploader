@@ -1,0 +1,22 @@
+# 🌑 SHADOW POSTER - COMMAND CHEATSHEET
+
+### 🚀 SETUP
+pip install playwright playwright-stealth
+playwright install chrome
+
+### 🖥️ RUN CONTROL CENTER (GUI)
+python ui.py
+
+### ⚙️ SETUP ACCOUNTS (MANUAL LOGIN)
+1. Run `python ui.py`
+2. Click "Log into X" / "Log into Instagram" / "Log into TikTok"
+3. Manually login & close the browser window.
+
+### 📋 MANAGE QUEUE
+Edit content.csv (Set status to 'pending' for new posts)
+
+### 🤖 RUN BOT (NO GUI)
+python main.py
+python main.py --platform x
+python main.py --platform ig
+python main.py --platform tiktok
