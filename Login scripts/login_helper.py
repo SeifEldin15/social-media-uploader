@@ -41,7 +41,7 @@ def get_stealth_args():
         "--disable-features=IsolateOrigins,site-per-process"
     ]
 
-def save_session(choice=None, is_ui=False):
+def save_session(choice=None, is_ui=False, username="default"):
     # ==========================================
     # PLATFORM SELECTION
     # ==========================================
@@ -73,7 +73,7 @@ def save_session(choice=None, is_ui=False):
     # ==========================================
     # Build the profile folder right where this script is executed from
     # (assuming it's run from the root directory)
-    session_dir = os.path.join(os.getcwd(), profile_folder)
+    session_dir = os.path.join(os.getcwd(), "Profiles", username, profile_folder)
 
     # If the folder doesn't exist yet, build it. This is where the SQLite databases, 
     # cookies, and local storage will be permanently saved.

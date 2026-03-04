@@ -17,7 +17,7 @@ class ContentManager:
         # Using os.getcwd() ensures it always finds it no matter where you launch the terminal from.
         self.csv_path = os.path.join(os.getcwd(), "content.csv")
 
-    def get_next_post(self, platform_name: str = None):
+    def get_next_post(self, platform_name: str = None, username: str = None):
         """
         Scans the CSV top-to-bottom for the first row that matches our platform 
         (or any platform if None) AND has a status of 'pending'.
@@ -41,6 +41,12 @@ class ContentManager:
                 # or a capital "X" doesn't break our strict logic.
                 status = row.get('status', '').strip().lower()
                 platform = row.get('platform', '').strip().lower()
+                row_user = row.get('username', '').strip()
+                
+                # If a username is specified and the CSV row has one, they must match.
+                # If the row has no username column or it's empty, it can be posted by any user.
+                if username and row_user and row_user != username:
+                    continue
                 
                 if status == 'pending' and (platform_name is None or platform == platform_name):
                     # Boom. We found our target. Return this exact row as a dictionary.

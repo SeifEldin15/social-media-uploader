@@ -39,8 +39,8 @@ def get_stealth_args():
         "--disable-features=IsolateOrigins,site-per-process" # Saves RAM by disabling site isolation
     ]
 
-def main(target_platform=None):
-    print(f"🚀 Firing up the posting engine (Stealth Mode) for {'ALL' if not target_platform else target_platform.upper()}...")
+def main(target_platform=None, username="default"):
+    print(f"🚀 Firing up the posting engine (Stealth Mode) for {'ALL' if not target_platform else target_platform.upper()} (User: {username})...")
     
     # ==========================================
     # PHASE 1: THE DATA FETCH
@@ -50,7 +50,7 @@ def main(target_platform=None):
     cm = ContentManager()
     
     # Get the next post for the target platform (or any platform if None)
-    job = cm.get_next_post(target_platform)
+    job = cm.get_next_post(target_platform, username)
     
     # The kill switch: If content.csv is empty or has no 'pending' rows, we exit instantly.
     if not job:
@@ -61,17 +61,17 @@ def main(target_platform=None):
     
     if platform == 'ig':
         from ig_poster import IGPoster
-        PROFILE_PATH = os.path.join(os.getcwd(), "IG_Profile")
+        PROFILE_PATH = os.path.join(os.getcwd(), "Profiles", username, "IG_Profile")
         PosterClass = IGPoster
         print(f"📋 Found IG Job #{job['id']}: '{job['caption'][:20]}...'")
     elif platform == 'tiktok':
         from tiktok_poster import TikTokPoster
-        PROFILE_PATH = os.path.join(os.getcwd(), "TikTok_Profile")
+        PROFILE_PATH = os.path.join(os.getcwd(), "Profiles", username, "TikTok_Profile")
         PosterClass = TikTokPoster
         print(f"📋 Found TikTok Job #{job['id']}: '{job['caption'][:20]}...'")
     elif platform == 'x':
         from x_poster import XPoster
-        PROFILE_PATH = os.path.join(os.getcwd(), "X_Profile")
+        PROFILE_PATH = os.path.join(os.getcwd(), "Profiles", username, "X_Profile")
         PosterClass = XPoster
         print(f"📋 Found X Job #{job['id']}: '{job['caption'][:20]}...'")
     else:
