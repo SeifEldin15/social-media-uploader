@@ -14,6 +14,7 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), "Login scripts"))
 from login_helper import save_session
 import main
+import iphone_main
 
 class PrintRedirector:
     """Redirects print statements to the Tkinter text widget"""
@@ -42,7 +43,7 @@ class ShadowPosterUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Shadow Poster Control Panel")
-        self.root.geometry("600x450")
+        self.root.geometry("900x520")
         
         # Style
         style = ttk.Style()
@@ -66,27 +67,45 @@ class ShadowPosterUI:
         self.username_var = tk.StringVar(value="default")
         self.username_entry = ttk.Entry(user_frame, textvariable=self.username_var, width=15)
         self.username_entry.pack(side=tk.LEFT)
+
+        # iPhone UDID row (below the title bar)
+        udid_frame = ttk.Frame(main_frame)
+        udid_frame.pack(fill=tk.X, pady=(0, 8))
+        ttk.Label(udid_frame, text="iPhone UDID:").pack(side=tk.LEFT, padx=(0, 4))
+        self.udid_var = tk.StringVar(value="")
+        self.udid_entry = ttk.Entry(udid_frame, textvariable=self.udid_var, width=40)
+        self.udid_entry.pack(side=tk.LEFT, padx=(0, 6))
+        ttk.Button(udid_frame, text="🔍 Auto-Detect", command=self.run_detect_iphone).pack(side=tk.LEFT)
         
         # Grid layout for buttons
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=(0, 20))
 
-        # Auto Posting Options
-        ttk.Label(btn_frame, text="Run Auto-Poster:", font=("Helvetica", 10, "bold")).grid(row=0, column=0, sticky="w", padx=10)
+        # Auto Posting Options (Desktop/Browser)
+        ttk.Label(btn_frame, text="🖥️ Desktop Browser:", font=("Helvetica", 10, "bold")).grid(row=0, column=0, sticky="w", padx=10)
         ttk.Button(btn_frame, text="🚀 Next in Queue", command=lambda: self.run_poster(None)).grid(row=1, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="📸 Next IG Post", command=lambda: self.run_poster('ig')).grid(row=2, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="🐦 Next X Post", command=lambda: self.run_poster('x')).grid(row=3, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="🎵 Next TikTok Post", command=lambda: self.run_poster('tiktok')).grid(row=4, column=0, padx=10, pady=5)
         ttk.Button(btn_frame, text="🌟 Post All Pending", command=self.run_post_all).grid(row=5, column=0, padx=10, pady=5)
-        
-        # Spacer
-        ttk.Frame(btn_frame, width=30).grid(row=0, column=1)
+
+        # Spacer 1
+        ttk.Frame(btn_frame, width=20).grid(row=0, column=1)
+
+        # iPhone Posting Options (Native iOS Apps via Appium)
+        ttk.Label(btn_frame, text="📱 iPhone (Native Apps):", font=("Helvetica", 10, "bold")).grid(row=0, column=2, sticky="w", padx=10)
+        ttk.Button(btn_frame, text="📸 iPhone IG Post",     command=lambda: self.run_iphone_poster('ig')).grid(row=1, column=2, padx=10, pady=5)
+        ttk.Button(btn_frame, text="🐦 iPhone X Post",      command=lambda: self.run_iphone_poster('x')).grid(row=2, column=2, padx=10, pady=5)
+        ttk.Button(btn_frame, text="🎵 iPhone TikTok Post", command=lambda: self.run_iphone_poster('tiktok')).grid(row=3, column=2, padx=10, pady=5)
+
+        # Spacer 2
+        ttk.Frame(btn_frame, width=20).grid(row=0, column=3)
 
         # Configuration Options
-        ttk.Label(btn_frame, text="Configure Accounts:", font=("Helvetica", 10, "bold")).grid(row=0, column=2, sticky="w", padx=10)
-        ttk.Button(btn_frame, text="Log into X (Twitter)", command=lambda: self.run_login('1')).grid(row=1, column=2, padx=10, pady=5)
-        ttk.Button(btn_frame, text="Log into Instagram", command=lambda: self.run_login('2')).grid(row=2, column=2, padx=10, pady=5)
-        ttk.Button(btn_frame, text="Log into TikTok", command=lambda: self.run_login('3')).grid(row=3, column=2, padx=10, pady=5)
+        ttk.Label(btn_frame, text="⚙️ Configure Accounts:", font=("Helvetica", 10, "bold")).grid(row=0, column=4, sticky="w", padx=10)
+        ttk.Button(btn_frame, text="Log into X (Twitter)", command=lambda: self.run_login('1')).grid(row=1, column=4, padx=10, pady=5)
+        ttk.Button(btn_frame, text="Log into Instagram",   command=lambda: self.run_login('2')).grid(row=2, column=4, padx=10, pady=5)
+        ttk.Button(btn_frame, text="Log into TikTok",      command=lambda: self.run_login('3')).grid(row=3, column=4, padx=10, pady=5)
 
         # ---------------------
         # CONSOLE OUTPUT
@@ -117,6 +136,45 @@ class ShadowPosterUI:
             print("--- Bot finished ---")
         except Exception as e:
             print(f"❌ Critical Error: {e}")
+
+    def run_iphone_poster(self, target_platform: str):
+        """Launch the iPhone native-app poster in a background thread."""
+        username = self.username_var.get().strip()
+        udid = self.udid_var.get().strip() or None
+        if not username:
+            print("❌ Error: Please enter a username first.")
+            return
+        print(f"\n--- Starting iPhone Auto-Poster [{target_platform.upper()}] for User [{username}] ---")
+        if not udid:
+            print("   (No UDID entered — will attempt auto-detection)")
+        threading.Thread(
+            target=self._run_iphone_poster_thread,
+            args=(target_platform, username, udid),
+            daemon=True
+        ).start()
+
+    def _run_iphone_poster_thread(self, target_platform, username, udid):
+        try:
+            iphone_main.main(target_platform, username, udid=udid)
+            print("--- iPhone Bot finished ---")
+        except Exception as e:
+            print(f"❌ iPhone Critical Error: {e}")
+
+    def run_detect_iphone(self):
+        """Auto-detect connected iPhone and populate the UDID field."""
+        print("\n--- Detecting connected iPhone... ---")
+        threading.Thread(target=self._run_detect_iphone_thread, daemon=True).start()
+
+    def _run_detect_iphone_thread(self):
+        try:
+            udid = iphone_main.detect_iphone_udid()
+            if udid:
+                self.udid_var.set(udid)
+                print(f"✅ iPhone UDID populated: {udid}")
+            else:
+                print("❌ No iPhone found. Check USB connection and 'Trust This Computer'.")
+        except Exception as e:
+            print(f"❌ Detection Error: {e}")
 
     def run_post_all(self):
         username = self.username_var.get().strip()

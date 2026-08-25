@@ -49,4 +49,67 @@ Launch the control panel: `python ui.py`
 3. **Logs**: If a post fails, check the `logs/` folder for a screenshot of what the bot saw.
 
 ---
+
+## 📱 5. iPhone Native App Posting (via Appium)
+
+Post through the REAL Instagram, TikTok, and X iOS apps on a
+physically connected iPhone — completely indistinguishable from
+a human tapping the screen.
+
+### Prerequisites (One-Time Setup)
+
+**Step A — Install Node.js**
+Download from https://nodejs.org/ (LTS version).
+
+**Step B — Install Appium and the XCUITest driver**
+Run these in a terminal:
+  npm install -g appium
+  appium driver install xcuitest
+
+**Step C — Install Python dependencies**
+  pip install Appium-Python-Client pymobiledevice3
+
+**Step D — Connect your iPhone**
+1. Plug the iPhone into your PC via USB.
+2. Unlock the iPhone and tap "Trust This Computer" when prompted.
+3. Make sure iTunes (or Apple Mobile Device Support) is installed
+   so Windows can communicate with the iPhone.
+
+**Step E — Start the Appium server** (every time you want to post)
+Open a terminal and run:
+  appium --port 4723
+Leave this terminal open while posting.
+
+### Finding Your UDID (Optional)
+The UI has an "Auto-Detect" button next to the UDID field — just
+click it and your iPhone's UDID will be filled in automatically.
+If auto-detection fails, find your UDID manually:
+- Open iTunes → click your device → right-click the serial number
+  and select "Copy UDID".
+- Paste it into the "iPhone UDID" field in the UI.
+
+### Posting from the UI
+1. Start the Appium server (`appium --port 4723`) in a terminal.
+2. Open the UI: `python ui.py`
+3. Enter your Active User and iPhone UDID (or click Auto-Detect).
+4. Add a post to content.csv with `platform=ig` / `tiktok` / `x`.
+5. Click the matching button in the "iPhone (Native Apps)" column.
+
+The bot will:
+  - Auto-transfer your media file to the iPhone's photo library
+  - Open the native app (Instagram/TikTok/X) via Appium
+  - Navigate the UI exactly like a human thumb would
+  - Type the caption with realistic timing
+  - Tap Post/Share and wait for confirmation
+  - Mark the job complete in content.csv
+
+### Notes
+- The iPhone must stay unlocked and trusted during the session.
+- Keep Appium server running in the background while posting.
+- The first run on a fresh device may take a few extra minutes
+  as Appium installs its WebDriverAgent helper app on the iPhone.
+- If a post fails, check the `logs/` folder for a screenshot of
+  exactly what the app looked like when it failed.
+
+---
 *Happy Posting!* 🚀🌑
